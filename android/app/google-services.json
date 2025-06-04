@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "295285705008",
+    "firebase_url": "https://book-companion-1-default-rtdb.firebaseio.com",
+    "project_id": "book-companion-1",
+    "storage_bucket": "book-companion-1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:295285705008:android:5c4704eaa11453096b60f5",
+        "android_client_info": {
+          "package_name": "com.example.book_traders"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZ65h17vdlRclkugxx7uvkB8QDOZE5TAo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
