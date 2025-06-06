@@ -32,6 +32,9 @@ class AuthService {
   // Get current user as stream
   Stream<User?> get currentUser => _auth.authStateChanges();
 
+  // Check if user is logged in
+  bool get isLoggedIn => _auth.currentUser != null;
+
   Future<bool> _checkConnectivity() async {
     try {
       final result = await _connectivity.checkConnectivity();

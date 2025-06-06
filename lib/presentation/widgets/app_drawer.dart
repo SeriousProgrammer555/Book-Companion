@@ -120,9 +120,9 @@ class AppDrawer extends StatelessWidget {
             label: Text('Home', style: TextStyle(color: kWhite)),
           ),
           NavigationDrawerDestination(
-            icon: const Icon(Icons.explore_outlined, color: kWhite),
-            selectedIcon: Icon(Icons.explore, color: kLightBlue),
-            label: Text('Explore', style: TextStyle(color: kWhite)),
+            icon: const Icon(Icons.analytics_outlined, color: kWhite),
+            selectedIcon: Icon(Icons.analytics, color: kLightBlue),
+            label: Text('Reading Stats', style: TextStyle(color: kWhite)),
           ),
           NavigationDrawerDestination(
             icon: const Icon(Icons.book_outlined, color: kWhite),
@@ -213,7 +213,7 @@ class AppDrawer extends StatelessWidget {
     switch (currentRoute) {
       case '/':
         return 0;
-      case '/explore':
+      case '/reading-stats':
         return 1;
       case '/books':
         return 2;
@@ -229,30 +229,25 @@ class AppDrawer extends StatelessWidget {
   }
 
   void _navigateToDestination(BuildContext context, int index) {
+    Navigator.pop(context); // Close drawer first
     switch (index) {
       case 0:
         context.go('/');
         break;
       case 1:
-        context.go('/explore');
+        context.go('/reading-stats');
         break;
       case 2:
         context.go('/books');
         break;
       case 3:
-        // For quotes, we should navigate from the book detail screen instead
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a book to view its quotes'),
-          ),
+          const SnackBar(content: Text('Please select a book to view its quotes')),
         );
         break;
       case 4:
-        // For mood tracking, we should navigate from the book detail screen
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a book to track mood'),
-          ),
+          const SnackBar(content: Text('Please select a book to track mood')),
         );
         break;
       case 5:

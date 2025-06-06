@@ -58,7 +58,7 @@ class BookListScreen extends ConsumerWidget {
                 flexibleSpace: FlexibleSpaceBar(
                   title: Text(
                     title,
-                    style: textTheme.headlineMedium?.copyWith(
+                    style: textTheme.titleLarge?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
@@ -142,7 +142,17 @@ class BookListScreen extends ConsumerWidget {
                             'Jane Austen'
                           ][index],
                           coverUrl: 'https://picsum.photos/200/300?random=$index',
-                          totalPages: 300,
+                          totalPages: [
+                            320,  // Atomic Habits
+                            288,  // How to Win Friends and Influence People
+                            320,  // Think and Grow Rich
+                            336,  // Rich Dad Poor Dad
+                            368,  // The Forty Rules of Love
+                            309,  // Harry Potter and the Philosopher's Stone
+                            350,  // The Silence of the Lambs (keeping default as not specified)
+                            544,  // Great Expectations
+                            432,  // Pride and Prejudice
+                          ][index],
                           status: 'want_to_read',
                           currentPage: 0,
                           startDate: DateTime.now(),

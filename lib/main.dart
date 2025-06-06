@@ -9,7 +9,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'core/config/app_config.dart';
 import 'core/error/app_error.dart';
 import 'core/routes.dart';
-import 'core/theme.dart' as app_theme;
+import 'core/theme/app_theme.dart';
 import 'data/services/auth/auth_service.dart';
 import 'data/services/storage/firebase_service.dart';
 import 'firebase_options.dart';
@@ -98,8 +98,8 @@ class BookCompanionApp extends ConsumerWidget {
     if (error != null) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: app_theme.AppTheme.lightTheme,
-        darkTheme: app_theme.AppTheme.darkTheme,
+        theme: AppTheme.lightTheme(),
+        darkTheme: AppTheme.darkTheme(),
         themeMode: themeMode,
         home: Scaffold(
           body: ErrorView(
@@ -113,8 +113,8 @@ class BookCompanionApp extends ConsumerWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: AppConfig.appName,
-      theme: app_theme.AppTheme.lightTheme,
-      darkTheme: app_theme.AppTheme.darkTheme,
+      theme: AppTheme.lightTheme(),
+      darkTheme: AppTheme.darkTheme(),
       themeMode: themeMode,
       routerConfig: AppRouter.router,
     );

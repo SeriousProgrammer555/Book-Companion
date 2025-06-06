@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:fl_chart/fl_chart.dart';
+// import 'package:fl_chart/fl_chart.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../../core/routes.dart';
-import '../../../widgets/glassmorphic_container.dart';
+import '../../../widgets/widgets.dart';
 import '../providers/dashboard_provider.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -70,6 +69,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
             style: TextStyle(
               color: colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
           ),
         ),
@@ -111,8 +111,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
               // Enhanced Header
               SliverToBoxAdapter(
                 child: Container(
-                  height: 200,
-                  padding: const EdgeInsets.all(16),
+                  height: 240,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Stack(
                     children: [
                       // Decorative elements
@@ -139,41 +139,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
                         ),
                       )),
                       // Main content
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 40),
-                          Text(
-                            'Welcome Back!',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                      SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            Text(
+                              'Welcome Back!',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ).animate().fadeIn().slideX(begin: -0.2, end: 0),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Track your reading journey',
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: Colors.white70,
+                              ),
+                            ).animate().fadeIn().slideX(begin: -0.2, end: 0, delay: 100.ms),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              child: _buildReadingStatsHeader(context, state),
                             ),
-                          ).animate().fadeIn().slideX(begin: -0.2, end: 0),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Track your reading journey',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.white70,
-                            ),
-                          ).animate().fadeIn().slideX(begin: -0.2, end: 0, delay: 100.ms),
-                          const SizedBox(height: 24),
-                          _buildReadingStatsHeader(context, state),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ),
-
-              // Reading Streak Calendar
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: _buildReadingStreakCalendar(context)
-                      .animate()
-                      .fadeIn(delay: 500.ms)
-                      .slideY(begin: 0.2, end: 0),
                 ),
               ),
 
@@ -257,107 +252,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Colors.white70,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReadingStreakCalendar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final state = ref.watch(dashboardProvider);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Reading Streak',
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${state.currentStreak} days',
-                style: textTheme.titleMedium?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        GlassmorphicContainer(
-          height: 500,
-          borderRadius: 24,
-          borderWidth: 2,
-          blurRadius: 16,
-          linearGradient: LinearGradient(
-            colors: [
-              colorScheme.primary.withOpacity(0.2),
-              colorScheme.primary.withOpacity(0.05),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderGradient: LinearGradient(
-            colors: [
-              Colors.white.withOpacity(0.3),
-              Colors.white.withOpacity(0.1),
-            ],
-          ),
-          child: TableCalendar(
-            firstDay: DateTime.utc(DateTime.now().year, 1, 1),
-            lastDay: DateTime.utc(DateTime.now().year, 12, 31),
-            focusedDay: DateTime.now(),
-            calendarFormat: CalendarFormat.month,
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            headerStyle: HeaderStyle(
-              formatButtonVisible: false,
-              titleCentered: true,
-              titleTextStyle: textTheme.titleMedium!,
-            ),
-            calendarStyle: CalendarStyle(
-              todayDecoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.35),
-                shape: BoxShape.circle,
-              ),
-              selectedDecoration: BoxDecoration(
-                color: colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-              markerDecoration: BoxDecoration(
-                color: colorScheme.secondary,
-                shape: BoxShape.circle,
-              ),
-            ),
-            calendarBuilders: CalendarBuilders(
-              markerBuilder: (context, date, events) {
-                if (state.readingDays.contains(date)) {
-                  return Positioned(
-                    bottom: 4,
-                    child: Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  );
-                }
-                return null;
-              },
-            ),
-            onDaySelected: (selectedDay, focusedDay) {
-              // Could show details about the day reading activity or jump to logs
-            },
-            selectedDayPredicate: (day) => false,
           ),
         ),
       ],

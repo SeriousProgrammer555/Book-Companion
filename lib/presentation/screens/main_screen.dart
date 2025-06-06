@@ -1,34 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/routes.dart';
 import '../features/books/screens/explore_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/search/screens/search_screen.dart';
+import '../widgets/widgets.dart';
 // Import other screens as they are created
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  ConsumerState<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+class _MainScreenState extends ConsumerState<MainScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
-  // List of screens to be displayed in the body of the Scaffold
-  static final List<Widget> _screens = <Widget>[
-    // Link ExploreScreen to the Home tab
-    const ExploreScreen(),
-    // Link SearchScreen to the Search tab
-    const SearchScreen(),
-    // Link ExploreScreen to the Library tab (showing the book collection)
-    const ExploreScreen(),
-    // Link ProfileScreen to the Profile tab
-    const ProfileScreen(),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +35,7 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: colorScheme.primary,
         scrolledUnderElevation: 0,
         title: Text(
-          _getTitle(_selectedIndex),
+          'Book Companion',
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -81,7 +71,7 @@ class _MainScreenState extends State<MainScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      drawer: AppDrawer(currentRoute: _getCurrentRoute()),
+      drawer: const AppDrawer(currentRoute: '/'),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,63 +89,11 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: 'Explore',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () { /* (open "add book" (or "favorite") */ },
+        onPressed: () => context.push('/books/add'),
         child: const Icon(Icons.add),
       ),
     );
-  }
-
-  String _getTitle(int index) {
-    switch (index) {
-      case 0:
-        return 'Home';
-      case 1:
-        return 'Search';
-      case 2:
-        return 'Library';
-      case 3:
-        return 'Profile';
-      default:
-        return 'Book Companion';
-    }
-  }
-
-  String _getCurrentRoute() {
-    switch (_selectedIndex) {
-      case 0:
-        return '/';
-      case 1:
-        return '/search';
-      case 2:
-        return '/my-books';
-      case 3:
-        return '/profile';
-      default:
-        return '/';
-    }
   }
 
   // (Sample "popular" books (or "top cards") data.)

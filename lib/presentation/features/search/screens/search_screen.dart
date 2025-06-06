@@ -64,28 +64,94 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: GlassmorphicContainer(
+                  width: double.infinity,
+                  height: 60,
+                  borderRadius: 30,
+                  blurRadius: 10,
+                  borderWidth: 1.5,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  linearGradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.2),
+                      Colors.white.withOpacity(0.1),
+                    ],
+                  ),
+                  borderGradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.5),
+                      Colors.white.withOpacity(0.2),
+                    ],
+                  ),
                   child: TextField(
                     controller: _searchController,
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    cursorColor: colorScheme.primary,
                     decoration: InputDecoration(
-                      hintText: 'Search books, authors, or genres...',
-                      prefixIcon: Icon(Icons.search, color: colorScheme.primary),
+                      hintText: 'Search',
+                      hintStyle: TextStyle(
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      prefixIcon: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        child: Icon(
+                          Icons.search_rounded,
+                          color: _searchQuery.isEmpty 
+                              ? colorScheme.onSurface.withOpacity(0.7)
+                              : colorScheme.primary,
+                          size: 24,
+                        ),
+                      ),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: Icon(Icons.clear, color: colorScheme.primary),
+                              icon: Icon(
+                                Icons.clear_rounded,
+                                color: colorScheme.primary,
+                                size: 22,
+                              ),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
                               },
                             )
                           : null,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
                       border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
                     ),
                     onChanged: (value) {
                       setState(() => _searchQuery = value);
                     },
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (value) {
+                      if (value.isNotEmpty) {
+                        setState(() => _isSearching = true);
+                        // TODO: Implement search functionality
+                      }
+                    },
                   ),
                 ),
-              ).animate().fadeIn().slideY(begin: -0.2, end: 0),
+              ).animate()
+                .fadeIn(duration: const Duration(milliseconds: 600))
+                .slideY(
+                  begin: -0.2,
+                  end: 0,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutQuad,
+                ),
 
               // Search Filters
               SingleChildScrollView(
@@ -148,6 +214,29 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    final List<Map<String, dynamic>> recentSearches = [
+      {
+        'query': 'Rich Dad Poor Dad by Robert Kiyosaki',
+        'icon': Icons.book,
+      },
+      {
+        'query': 'Harry Potter Novel Series',
+        'icon': Icons.auto_stories,
+      },
+      {
+        'query': 'Thomas Harris Novels',
+        'icon': Icons.library_books,
+      },
+      {
+        'query': 'Red Dragon by Thomas Harris',
+        'icon': Icons.book,
+      },
+      {
+        'query': 'Atomic Habits by James Clear',
+        'icon': Icons.book,
+      },
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -163,21 +252,29 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: 5, // TODO: Replace with actual recent searches
+            itemCount: recentSearches.length,
             itemBuilder: (context, index) {
+              final search = recentSearches[index];
+              if (search['query'].isEmpty) {
+                return const SizedBox.shrink();
+              }
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: GlassmorphicContainer(
                   child: ListTile(
                     leading: Icon(
-                      Icons.history,
+                      search['icon'],
                       color: colorScheme.primary,
                     ),
-                    title: Text('Recent search ${index + 1}'),
+                    title: Text(search['query']),
                     trailing: IconButton(
                       icon: const Icon(Icons.arrow_forward_ios, size: 16),
                       onPressed: () {
-                        // TODO: Navigate to search results
+                        setState(() {
+                          _searchController.text = search['query'];
+                          _searchQuery = search['query'];
+                          _isSearching = true;
+                        });
                       },
                     ),
                   ),
@@ -254,3 +351,5 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 } 
+
+
