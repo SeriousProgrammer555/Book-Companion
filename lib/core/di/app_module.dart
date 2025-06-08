@@ -34,18 +34,29 @@ final quoteServiceProvider = Provider<QuoteService>((ref) {
 // State providers
 final appInitializedProvider = StateProvider<bool>((ref) => false);
 
-// Error handling provider
-final errorProvider = StateProvider<String?>((ref) => null);
-
 // Initialize all dependencies
-Future<void> initializeDependencies({ProviderContainer? container}) async {
+Future<bool> initializeDependencies(ProviderContainer container) async {
   try {
-    if (container != null) {
-      // Initialize Firebase if needed
-      container.read(appInitializedProvider.notifier).state = true;
+    // Initialize Firebase
+    final firebaseService = FirebaseService();
+    final authService = AuthService(
+      auth: firebase_auth.FirebaseAuth.instance,
+      database: FirebaseDatabase.instance,
+    );
+
+    // Verify Firebase is initialized and auth service is ready
+    if (firebase_auth.FirebaseAuth.instance.currentUser != null) {
+      await authService.getCurrentUser();
     }
+
+    // Mark app as initialized
+    container.read(appInitializedProvider.notifier).state = true;
+    
+    return true;
   } catch (e) {
     print('Error initializing dependencies: $e');
+    // Keep app as not initialized on error
+    container.read(appInitializedProvider.notifier).state = false;
     rethrow;
   }
 } 

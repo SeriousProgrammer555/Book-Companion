@@ -1,4 +1,3 @@
-
 import 'package:book_traders/data/models/user_role.dart';
 
 class User {

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/services/auth/auth_service.dart';
+import '../../core/di/app_module.dart';
 
 // Custom color constants
 const Color kPrimaryBlue = Color(0xFF4A90E2);
@@ -18,15 +19,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showHomeButton;
   final Color? backgroundColor;
   final double elevation;
+  final GlobalKey<ScaffoldState>? scaffoldKey;
 
   const CustomAppBar({
     super.key,
     required this.title,
     this.actions,
-    this.showBackButton = true,
+    this.showBackButton = false,
     this.showHomeButton = true,
     this.backgroundColor,
     this.elevation = 0,
+    this.scaffoldKey,
   });
 
   @override
@@ -49,7 +52,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
               onPressed: () => Navigator.of(context).pop(),
             )
-          : null,
+          : IconButton(
+              icon: const Icon(Icons.menu_rounded, color: Colors.black),
+              onPressed: () {
+                if (scaffoldKey != null) {
+                  scaffoldKey!.currentState?.openDrawer();
+                } else {
+                  Scaffold.of(context).openDrawer();
+                }
+              },
+            ),
       actions: [
         if (showHomeButton)
           IconButton(
@@ -65,7 +77,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(56.0);
 }
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends ConsumerWidget {
   final String currentRoute;
 
   const AppDrawer({
@@ -74,9 +86,9 @@ class AppDrawer extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
-    final authService = Provider.of<AuthService>(context, listen: false);
+    final authService = ref.read(authServiceProvider);
 
     return Container(
       decoration: const BoxDecoration(
@@ -92,7 +104,7 @@ class AppDrawer extends StatelessWidget {
         selectedIndex: _getSelectedIndex(currentRoute),
         onDestinationSelected: (index) {
           Navigator.pop(context);
-          _navigateToDestination(context, index);
+          _navigateToDestination(context, index, ref);
         },
         children: [
           Padding(
@@ -162,8 +174,14 @@ class AppDrawer extends StatelessWidget {
               children: [
                 FilledButton.icon(
                   onPressed: () {
-                    Navigator.pop(context);
-                    context.push('/books/add');
+                    if (context.canPop()) {
+                      context.pop();
+                    }
+                    Future.microtask(() {
+                      if (context.mounted) {
+                        context.pushNamed('add_book');
+                      }
+                    });
                   },
                   icon: const Icon(Icons.add, color: kDeepPurple),
                   label: const Text('Add New Book', 
@@ -182,10 +200,12 @@ class AppDrawer extends StatelessWidget {
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () async {
-                    Navigator.pop(context);
+                    if (context.canPop()) {
+                      context.pop();
+                    }
                     await authService.logout();
                     if (context.mounted) {
-                      context.go('/login');
+                      context.goNamed('login');
                     }
                   },
                   icon: const Icon(Icons.logout, color: kWhite),
@@ -228,31 +248,62 @@ class AppDrawer extends StatelessWidget {
     }
   }
 
-  void _navigateToDestination(BuildContext context, int index) {
-    Navigator.pop(context); // Close drawer first
+  void _navigateToDestination(BuildContext context, int index, WidgetRef ref) {
+    // Get current route to prevent unnecessary navigation
+    final currentLocation = GoRouterState.of(context).matchedLocation;
+    String targetRoute;
+
     switch (index) {
       case 0:
-        context.go('/');
+        targetRoute = '/';
         break;
       case 1:
-        context.go('/reading-stats');
+        targetRoute = '/reading-stats';
         break;
       case 2:
-        context.go('/books');
+        targetRoute = '/books';
         break;
       case 3:
+        // For quotes, we need a book ID
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a book to view its quotes')),
         );
-        break;
+        return;
       case 4:
+        // For mood tracking, we need a book ID
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a book to track mood')),
         );
-        break;
+        return;
       case 5:
-        context.go('/profile');
+        targetRoute = '/profile';
         break;
+      default:
+        targetRoute = '/';
+    }
+
+    // Only navigate if the target route is different from current route
+    if (currentLocation != targetRoute && context.mounted) {
+      // Use GoRouter's built-in pop functionality to close the drawer
+      if (context.canPop()) {
+        context.pop();
+      }
+      
+      // Navigate using GoRouter
+      final routeName = switch (targetRoute) {
+        '/' => 'dashboard',
+        '/reading-stats' => 'reading_stats',
+        '/books' => 'books',
+        '/profile' => 'profile',
+        _ => 'dashboard',
+      };
+      
+      // Use Future.microtask to ensure navigation happens after the current frame
+      Future.microtask(() {
+        if (context.mounted) {
+          context.goNamed(routeName);
+        }
+      });
     }
   }
 }

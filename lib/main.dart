@@ -1,87 +1,102 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart' as provider;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+
 import 'core/config/app_config.dart';
 import 'core/error/app_error.dart';
 import 'core/routes.dart';
 import 'core/theme/app_theme.dart';
-import 'data/services/auth/auth_service.dart';
-import 'data/services/storage/firebase_service.dart';
+import 'core/di/app_module.dart';
 import 'firebase_options.dart';
 
+// Create a provider to manage connectivity
+final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
+  final connectivity = Connectivity();
+  final controller = StreamController<ConnectivityResult>();
 
-Future<void> initializeFirebase() async {
+  // Helper function to handle connectivity result
+  Future<void> checkAndEmitConnectivity() async {
+    try {
+      final List<ConnectivityResult> results = await connectivity.checkConnectivity();
+      if (!controller.isClosed) {
+        // Ensure we handle the list result from checkConnectivity()
+        if (results.isNotEmpty) {
+          controller.add(results.first);
+        } else {
+          controller.add(ConnectivityResult.none);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking connectivity: $e');
+      if (!controller.isClosed) {
+        controller.add(ConnectivityResult.none);
+      }
+    }
+  }
+
+  // Check initial connectivity
+  checkAndEmitConnectivity();
+
+  // Set up periodic check
+  final timer = Timer.periodic(
+    const Duration(seconds: 1),
+        (_) => checkAndEmitConnectivity(),
+  );
+
+  // Clean up
+  ref.onDispose(() {
+    timer.cancel();
+    controller.close();
+  });
+
+  return controller.stream;
+});
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Create a ProviderContainer to manage state during initialization
+  final container = ProviderContainer();
+  
   try {
+    // Initialize Firebase first
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // Enable offline persistence for Realtime Database
-    FirebaseDatabase.instance.setPersistenceEnabled(true);
-
+    // Set persistence based on platform
     if (kIsWeb) {
-      // Configure Firebase Auth persistence for web
       await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    } else {
+      FirebaseDatabase.instance.setPersistenceEnabled(true);
     }
 
-    AppConfig.logger.i('Firebase initialized successfully');
-  } catch (e, stack) {
-    AppConfig.logger.e('Failed to initialize Firebase', error: e, stackTrace: stack);
-    rethrow;
-  }
-}
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  try {
-    // Initialize Firebase first
-    await initializeFirebase();
-
-    // Initialize app configuration
+    // Initialize app config
     await AppConfig.initialize();
-
-    // Initialize connectivity monitoring
-    final connectivity = Connectivity();
-    connectivity.onConnectivityChanged.listen((List<ConnectivityResult> results) {
-      final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
-      AppConfig.logger.i('Connectivity changed: $result');
-    });
+    
+    // Pass the container directly to initializeDependencies
+    await initializeDependencies(container);
 
     runApp(
-      ProviderScope(
-        child: provider.MultiProvider(
-          providers: [
-            provider.Provider<AuthService>(
-              create: (_) => AuthService(
-                auth: FirebaseAuth.instance,
-                database: FirebaseDatabase.instance,
-              ),
-            ),
-            provider.Provider<FirebaseService>(
-              create: (_) => FirebaseService(),
-            ),
-          ],
-          child: const BookCompanionApp(),
-        ),
+      UncontrolledProviderScope(
+        container: container,
+        child: const BookCompanionApp(),
       ),
     );
-  } catch (error, stackTrace) {
-    AppConfig.logger.e('Failed to initialize app', error: error, stackTrace: stackTrace);
+  } catch (e) {
+    print('Initialization error: $e');
+    // Set initialization flag to false in case of error
+    container.read(appInitializedProvider.notifier).state = false;
+    
     runApp(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          body: ErrorView(
-            error: AppError.fromException(error, stackTrace),
-            onRetry: () => main(),
-          ),
-        ),
+      UncontrolledProviderScope(
+        container: container,
+        child: const BookCompanionApp(),
       ),
     );
   }
@@ -92,44 +107,23 @@ class BookCompanionApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final error = ref.watch(errorProvider);
-    final themeMode = ref.watch(themeProvider);
+    final router = ref.watch(routerProvider);
 
-    if (error != null) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme(),
-        darkTheme: AppTheme.darkTheme(),
-        themeMode: themeMode,
-        home: Scaffold(
-          body: ErrorView(
-            error: error,
-            onRetry: () => ref.read(errorProvider.notifier).clearError(),
-          ),
-        ),
-      );
-    }
+    // Watch for connectivity changes
+    ref.listen<AsyncValue<ConnectivityResult>>(
+      connectivityProvider,
+      (_, next) => next.whenData((connectivity) {
+        AppConfig.logger.i('Connectivity changed: $connectivity');
+      }),
+    );
 
     return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
       title: AppConfig.appName,
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
-      themeMode: themeMode,
-      routerConfig: AppRouter.router,
+      themeMode: AppConfig.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      routerConfig: router,
+      debugShowCheckedModeBanner: false,
     );
-  }
-}
-
-final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
-  return ThemeNotifier();
-});
-
-class ThemeNotifier extends StateNotifier<ThemeMode> {
-  ThemeNotifier() : super(AppConfig.isDarkMode ? ThemeMode.dark : ThemeMode.light);
-
-  void toggleTheme() {
-    state = state == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    AppConfig.setDarkMode(state == ThemeMode.dark);
   }
 }

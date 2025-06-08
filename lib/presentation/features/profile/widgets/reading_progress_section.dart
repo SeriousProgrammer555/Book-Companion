@@ -69,6 +69,27 @@ class _ReadingProgressSectionState extends ConsumerState<ReadingProgressSection>
         const SizedBox(height: 24),
         if (state.readingBooks.isEmpty)
           GlassmorphicContainer(
+            height: 200,
+            width: double.infinity,
+            borderRadius: 16,
+            blurRadius: 10,
+            borderWidth: 2,
+            linearGradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.2),
+                Colors.white.withOpacity(0.05),
+              ],
+            ),
+            borderGradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.5),
+                Colors.white.withOpacity(0.1),
+              ],
+            ),
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -104,6 +125,27 @@ class _ReadingProgressSectionState extends ConsumerState<ReadingProgressSection>
           )
         else
           GlassmorphicContainer(
+            height: 280,
+            width: double.infinity,
+            borderRadius: 16,
+            blurRadius: 10,
+            borderWidth: 2,
+            linearGradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.2),
+                Colors.white.withOpacity(0.05),
+              ],
+            ),
+            borderGradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withOpacity(0.5),
+                Colors.white.withOpacity(0.1),
+              ],
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

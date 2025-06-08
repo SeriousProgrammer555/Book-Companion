@@ -56,23 +56,31 @@ class AppConfig {
 
   // Shared Preferences
   static late SharedPreferences prefs;
+  static late bool _isDarkMode; // Declare it once here
 
+  // Unified Initialize Method
   static Future<void> initialize() async {
     prefs = await SharedPreferences.getInstance();
 
-    // Set a default auth token if none exists
+    // Logic from the first initialize()
     if (prefs.getString(authTokenKey) == null) {
       await prefs.setString(authTokenKey, 'default_auth_token');
       await prefs.setString(userIdKey, 'default_user_id');
     }
 
+    // Logic from the second initialize() for dark mode
+    _isDarkMode = prefs.getBool(themeKey) ?? true; // Load from preferences, default to true if null
+
     logger.i('AppConfig initialized');
+    logger.i('Initial Dark Mode: $_isDarkMode');
   }
 
   // Theme Mode
-  static bool get isDarkMode => prefs.getBool(themeKey) ?? true;
+  static bool get isDarkMode => _isDarkMode; // Now just a getter for the initialized value
   static Future<void> setDarkMode(bool value) async {
-    await prefs.setBool(themeKey, value);
+    _isDarkMode = value; // Update the internal state
+    await prefs.setBool(themeKey, value); // Persist the change
+    logger.i('Dark Mode set to: $_isDarkMode');
   }
 
   // First Run

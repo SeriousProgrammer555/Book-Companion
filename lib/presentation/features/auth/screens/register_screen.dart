@@ -255,9 +255,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with SingleTick
                                 Text(
                                   'Create Account',
                                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w400,
                                     color: kWhite,
                                     letterSpacing: 0.5,
+                                    fontSize: 32,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -266,6 +267,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with SingleTick
                                   'Start your reading journey today',
                                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     color: kWhite70,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w300,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -362,8 +365,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with SingleTick
                                       : const Text(
                                           'Sign Up',
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w400,
                                             letterSpacing: 0.5,
                                           ),
                                         ),
@@ -375,7 +378,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with SingleTick
                                   children: [
                                     Text(
                                       'Already have an account? ',
-                                      style: TextStyle(color: kWhite70),
+                                      style: TextStyle(
+                                        color: kWhite70,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w300,
+                                      ),
                                       textAlign: TextAlign.center,
                                     ),
                                     TextButton(
@@ -389,7 +396,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with SingleTick
                                         'Sign In',
                                         style: TextStyle(
                                           color: kLightBlue,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 16,
                                         ),
                                       ),
                                     ),
@@ -424,10 +432,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> with SingleTick
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      style: const TextStyle(color: kWhite),
+      style: const TextStyle(
+        color: kWhite,
+        fontSize: 16,
+        fontWeight: FontWeight.w300,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: kWhite70),
+        labelStyle: const TextStyle(
+          color: kWhite70,
+          fontSize: 16,
+          fontWeight: FontWeight.w300,
+        ),
         prefixIcon: Icon(icon, color: kLightBlue),
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(

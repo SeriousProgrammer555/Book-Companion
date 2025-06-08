@@ -26,6 +26,16 @@ class AuthService {
   }) : _auth = auth,
        _database = database;
 
+  // Helper method to sanitize email for Firebase key
+  String _sanitizeEmail(String email) {
+    return email.replaceAll('.', ',')
+                .replaceAll('#', '-')
+                // .replaceAll('$', '-')
+                .replaceAll('[', '-')
+                .replaceAll(']', '-')
+                .replaceAll('/', '-');
+  }
+
   // Get current user synchronously
   User? get currentUserSync => _auth.currentUser;
 
@@ -62,7 +72,8 @@ class AuthService {
     }
 
     try {
-      final ref = _database.ref().child('loginAttempts/$email');
+      final sanitizedEmail = _sanitizeEmail(email);
+      final ref = _database.ref().child('loginAttempts').child(sanitizedEmail);
       final snapshot = await ref.get();
       
       if (snapshot.exists) {
@@ -92,9 +103,18 @@ class AuthService {
     }
 
     try {
-      final ref = _database.ref().child('loginAttempts/$email');
+      final sanitizedEmail = _sanitizeEmail(email);
+      final ref = _database.ref().child('loginAttempts').child(sanitizedEmail);
       final snapshot = await ref.get();
       
+      final Map<String, dynamic> attemptData = {
+        'email': email, // Store original email for reference
+        'timestamp': ServerValue.timestamp,
+        'success': success,
+        'ip': kIsWeb ? null : 'mobile-device', // Basic platform info
+        'platform': kIsWeb ? 'web' : 'mobile',
+      };
+
       if (snapshot.exists) {
         final data = snapshot.value as Map<dynamic, dynamic>;
         final count = data['count'] as int? ?? 0;
@@ -104,12 +124,14 @@ class AuthService {
             DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(lastAttempt)) >= _loginAttemptWindow) {
           // Reset count if window has passed
           await ref.set({
+            ...attemptData,
             'count': success ? 0 : 1,
             'lastAttempt': ServerValue.timestamp,
           });
         } else {
           // Increment count if within window
           await ref.update({
+            ...attemptData,
             'count': success ? 0 : count + 1,
             'lastAttempt': ServerValue.timestamp,
           });
@@ -117,6 +139,7 @@ class AuthService {
       } else {
         // First attempt
         await ref.set({
+          ...attemptData,
           'count': success ? 0 : 1,
           'lastAttempt': ServerValue.timestamp,
         });
@@ -335,5 +358,17 @@ class AuthService {
     } catch (e) {
       throw AppError.auth(message: 'Failed to change user role');
     }
+  }
+
+  Future<app_user.User?> getCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+
+    final snapshot = await _database.ref().child('users/${user.uid}').get();
+    if (!snapshot.exists) return null;
+    
+    final data = Map<String, dynamic>.from(snapshot.value as Map);
+    data['id'] = snapshot.key;
+    return app_user.User.fromJson(data);
   }
 } 

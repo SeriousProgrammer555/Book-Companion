@@ -106,173 +106,176 @@ class ProfileScreen extends ConsumerWidget {
                       )),
                       // Profile content
                       SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Hero(
-                                    tag: 'profile-avatar',
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        // TODO: Show profile edit dialog
-                                      },
-                                      child: Stack(
-                                        children: [
-                                          Container(
-                                            width: 80,
-                                            height: 80,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: colorScheme.surface,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black.withOpacity(0.2),
-                                                  blurRadius: 10,
-                                                  offset: const Offset(0, 5),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Center(
-                                              child: Icon(
-                                                Icons.person,
-                                                size: 40,
-                                                color: colorScheme.primary,
+                        child: SingleChildScrollView(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  children: [
+                                    Hero(
+                                      tag: 'profile-avatar',
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          // TODO: Show profile edit dialog
+                                        },
+                                        child: Stack(
+                                          children: [
+                                            Container(
+                                              width: 80,
+                                              height: 80,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: colorScheme.surface,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.2),
+                                                    blurRadius: 10,
+                                                    offset: const Offset(0, 5),
+                                                  ),
+                                                ],
                                               ),
+                                              child: Center(
+                                                child: Icon(
+                                                  Icons.person,
+                                                  size: 40,
+                                                  color: colorScheme.primary,
+                                                ),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              right: 0,
+                                              bottom: 0,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                decoration: BoxDecoration(
+                                                  color: colorScheme.primary,
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                    color: colorScheme.surface,
+                                                    width: 2,
+                                                  ),
+                                                ),
+                                                child: Icon(
+                                                  Icons.edit,
+                                                  size: 16,
+                                                  color: colorScheme.onPrimary,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  'Book Enthusiast',
+                                                  style: textTheme.headlineSmall?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: colorScheme.onPrimary,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 4,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: colorScheme.primaryContainer,
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.star,
+                                                      size: 16,
+                                                      color: colorScheme.onPrimaryContainer,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'Level ${(completedBooks / 5).floor() + 1}',
+                                                      style: textTheme.labelMedium?.copyWith(
+                                                        color: colorScheme.onPrimaryContainer,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Member since ${DateFormat('MMM yyyy').format(DateTime.now())}',
+                                            style: textTheme.bodyMedium?.copyWith(
+                                              color: colorScheme.onPrimary.withOpacity(0.8),
                                             ),
                                           ),
-                                          Positioned(
-                                            right: 0,
-                                            bottom: 0,
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: BoxDecoration(
-                                                color: colorScheme.primary,
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  color: colorScheme.surface,
-                                                  width: 2,
-                                                ),
-                                              ),
-                                              child: Icon(
-                                                Icons.edit,
-                                                size: 16,
-                                                color: colorScheme.onPrimary,
-                                              ),
+                                          const SizedBox(height: 8),
+                                          LinearProgressIndicator(
+                                            value: (completedBooks % 5) / 5,
+                                            backgroundColor: colorScheme.primary.withOpacity(0.2),
+                                            valueColor: AlwaysStoppedAnimation<Color>(
+                                              colorScheme.onPrimary,
+                                            ),
+                                            minHeight: 4,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${completedBooks % 5}/5 books to next level',
+                                            style: textTheme.labelSmall?.copyWith(
+                                              color: colorScheme.onPrimary.withOpacity(0.8),
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Flexible(
-                                              child: Text(
-                                                'Book Enthusiast',
-                                                style: textTheme.headlineSmall?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: colorScheme.onPrimary,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: colorScheme.primaryContainer,
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    Icons.star,
-                                                    size: 16,
-                                                    color: colorScheme.onPrimaryContainer,
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    'Level ${(completedBooks / 5).floor() + 1}',
-                                                    style: textTheme.labelMedium?.copyWith(
-                                                      color: colorScheme.onPrimaryContainer,
-                                                      fontWeight: FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Member since ${DateFormat('MMM yyyy').format(DateTime.now())}',
-                                          style: textTheme.bodyMedium?.copyWith(
-                                            color: colorScheme.onPrimary.withOpacity(0.8),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        LinearProgressIndicator(
-                                          value: (completedBooks % 5) / 5,
-                                          backgroundColor: colorScheme.primary.withOpacity(0.2),
-                                          valueColor: AlwaysStoppedAnimation<Color>(
-                                            colorScheme.onPrimary,
-                                          ),
-                                          minHeight: 4,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '${completedBooks % 5}/5 books to next level',
-                                          style: textTheme.labelSmall?.copyWith(
-                                            color: colorScheme.onPrimary.withOpacity(0.8),
-                                          ),
-                                        ),
-                                      ],
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _buildQuickStat(
+                                      context,
+                                      completedBooks.toString(),
+                                      'Completed',
+                                      Icons.bookmark,
+                                      colorScheme.primary,
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 24),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  _buildQuickStat(
-                                    context,
-                                    completedBooks.toString(),
-                                    'Completed',
-                                    Icons.bookmark,
-                                    colorScheme.primary,
-                                  ),
-                                  _buildQuickStat(
-                                    context,
-                                    readingBooks.toString(),
-                                    'Reading',
-                                    Icons.menu_book,
-                                    colorScheme.secondary,
-                                  ),
-                                  _buildQuickStat(
-                                    context,
-                                    NumberFormat.compact().format(totalPages),
-                                    'Pages',
-                                    Icons.format_list_numbered,
-                                    colorScheme.tertiary,
-                                  ),
-                                ],
-                              ),
-                            ],
+                                    _buildQuickStat(
+                                      context,
+                                      readingBooks.toString(),
+                                      'Reading',
+                                      Icons.menu_book,
+                                      colorScheme.secondary,
+                                    ),
+                                    _buildQuickStat(
+                                      context,
+                                      NumberFormat.compact().format(totalPages),
+                                      'Pages',
+                                      Icons.format_list_numbered,
+                                      colorScheme.tertiary,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -302,7 +305,7 @@ class ProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 24),
                     _buildReadingGoals(context, books),
                     const SizedBox(height: 24),
-                    _buildSettings(context),
+                    _buildSettingsSection(context),
                   ]),
                 ),
               ),
@@ -513,14 +516,14 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSettings(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildSettingsSection(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-
+    
     return GlassmorphicContainer(
       width: double.infinity,
-      height: 320,
-      borderRadius: 16,
+      height: 400,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 24,
       blur: 10,
       border: 2,
       linearGradient: LinearGradient(
@@ -539,59 +542,65 @@ class ProfileScreen extends ConsumerWidget {
           Colors.white.withOpacity(0.1),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'Settings',
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 400),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Settings',
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
+              const Divider(height: 1),
+              _buildSettingsTile(
+                context,
+                icon: Icons.palette,
+                title: 'App Theme',
+                subtitle: 'Customize app appearance',
+                onTap: () {
+                  // TODO: Navigate to theme settings
+                },
+              ),
+              const Divider(height: 1),
+              _buildSettingsTile(
+                context,
+                icon: Icons.notifications,
+                title: 'Notifications',
+                subtitle: 'Manage reading reminders',
+                onTap: () {
+                  // TODO: Navigate to notification settings
+                },
+              ),
+              const Divider(height: 1),
+              _buildSettingsTile(
+                context,
+                icon: Icons.backup,
+                title: 'Backup & Restore',
+                subtitle: 'Sync your reading data',
+                onTap: () {
+                  // TODO: Navigate to backup settings
+                },
+              ),
+              const Divider(height: 1),
+              _buildSettingsTile(
+                context,
+                icon: Icons.info,
+                title: 'About',
+                subtitle: 'App version and credits',
+                onTap: () {
+                  // TODO: Navigate to about screen
+                },
+              ),
+            ],
           ),
-          const Divider(height: 1),
-          _buildSettingsTile(
-            context,
-            icon: Icons.palette,
-            title: 'App Theme',
-            subtitle: 'Customize app appearance',
-            onTap: () {
-              // TODO: Navigate to theme settings
-            },
-          ),
-          const Divider(height: 1),
-          _buildSettingsTile(
-            context,
-            icon: Icons.notifications,
-            title: 'Notifications',
-            subtitle: 'Manage reading reminders',
-            onTap: () {
-              // TODO: Navigate to notification settings
-            },
-          ),
-          const Divider(height: 1),
-          _buildSettingsTile(
-            context,
-            icon: Icons.backup,
-            title: 'Backup & Restore',
-            subtitle: 'Sync your reading data',
-            onTap: () {
-              // TODO: Navigate to backup settings
-            },
-          ),
-          const Divider(height: 1),
-          _buildSettingsTile(
-            context,
-            icon: Icons.info,
-            title: 'About',
-            subtitle: 'App version and credits',
-            onTap: () {
-              // TODO: Navigate to about screen
-            },
-          ),
-        ],
+        ),
       ),
     );
   }

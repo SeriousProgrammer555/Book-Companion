@@ -389,21 +389,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   size: 64,
                                   color: kLightBlue,
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 32),
                                 Text(
                                   'Welcome Back',
                                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w400,
                                     color: kWhite,
                                     letterSpacing: 0.5,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Sign in to continue your reading journey',
-                                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: kWhite70,
+                                    fontSize: 32,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -454,7 +447,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                       'Forgot Password?',
                                       style: TextStyle(
                                         color: kLightBlue,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16,
                                       ),
                                     ),
                                   ),
@@ -482,8 +476,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                       : const Text(
                                           'Sign In',
                                           style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w400,
                                             letterSpacing: 0.5,
                                           ),
                                         ),
@@ -495,7 +489,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   children: [
                                     Text(
                                       'Don\'t have an account? ',
-                                      style: TextStyle(color: kWhite70),
+                                      style: TextStyle(
+                                        color: kWhite70,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w300,
+                                      ),
                                       textAlign: TextAlign.center,
                                     ),
                                     TextButton(
@@ -509,7 +507,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                         'Sign Up',
                                         style: TextStyle(
                                           color: kLightBlue,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 16,
                                         ),
                                       ),
                                     ),
@@ -544,10 +543,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      style: const TextStyle(color: kWhite),
+      style: const TextStyle(
+        color: kWhite,
+        fontSize: 16,
+        fontWeight: FontWeight.w300,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: kWhite70),
+        labelStyle: const TextStyle(
+          color: kWhite70,
+          fontSize: 16,
+          fontWeight: FontWeight.w300,
+        ),
         prefixIcon: Icon(icon, color: kLightBlue),
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(

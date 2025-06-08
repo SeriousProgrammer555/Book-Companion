@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/services/auth/auth_service.dart';
 import '../presentation/features/admin/screens/admin_dashboard_screen.dart';
@@ -16,32 +16,68 @@ import '../presentation/features/profile/screens/dashboard_screen.dart';
 import '../presentation/features/profile/screens/profile_screen.dart';
 import '../presentation/features/search/screens/search_screen.dart';
 import '../presentation/features/reading_stats/screens/reading_stats_screen.dart';
+import '../core/di/app_module.dart';
 
-final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 // List of routes that don't require authentication
-const List<String> _publicRoutes = ['/login', '/register'];
+final _publicRoutes = [
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+];
 
-class AppRouter {
-  static final router = GoRouter(
+final routerProvider = Provider<GoRouter>((ref) {
+  final authService = ref.watch(authServiceProvider);
+  
+  return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
+    debugLogDiagnostics: true, // Keep debug logging enabled
     redirect: (context, state) {
-      final auth = Provider.of<AuthService>(context, listen: false);
-      final isLoggedIn = auth.isLoggedIn;
+      final isLoggedIn = authService.isLoggedIn;
+      final isInitialized = ref.read(appInitializedProvider);
 
-      // Allow access to public routes
-      if (_publicRoutes.contains(state.matchedLocation)) {
-        return isLoggedIn ? '/' : null;
+      // Show loading screen while not initialized
+      if (!isInitialized) {
+        return null;
       }
 
-      // Redirect to login if not logged in
-      if (!isLoggedIn) {
+      // Check if the requested route is a public route
+      final isPublicRoute = _publicRoutes.contains(state.matchedLocation);
+
+      // If logged in and trying to access public route, redirect to home
+      if (isLoggedIn && isPublicRoute) {
+        return '/';
+      }
+
+      // If not logged in and trying to access protected route, redirect to login
+      if (!isLoggedIn && !isPublicRoute) {
         return '/login';
       }
 
+      // Allow the navigation to proceed
       return null;
     },
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Page not found: ${state.uri.path}',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.go('/'),
+              child: const Text('Go Home'),
+            ),
+          ],
+        ),
+      ),
+    ),
     routes: [
       // Auth routes
       GoRoute(
@@ -64,34 +100,31 @@ class AppRouter {
       GoRoute(
         path: '/books',
         name: 'books',
-        builder: (context, state) => BookListScreen(
+        builder: (context, state) => const BookListScreen(
           title: 'My Books',
-          filter: (book) => true,
           emptyTitle: 'No Books Yet',
           emptyMessage: 'Start by adding your first book to your collection.',
         ),
-        routes: [
-          GoRoute(
-            path: 'add',
-            name: 'add_book',
-            builder: (context, state) => const AddBookScreen(),
-          ),
-          GoRoute(
-            path: ':id',
-            name: 'book_detail',
-            builder: (context, state) {
-              final String? bookId = state.pathParameters['id'];
-              if (bookId == null) {
-                return const Scaffold(
-                  body: Center(
-                    child: Text('Book ID is required'),
-                  ),
-                );
-              }
-              return BookDetailScreen(bookId: bookId);
-            },
-          ),
-        ],
+      ),
+      GoRoute(
+        path: '/books/add',
+        name: 'add_book',
+        builder: (context, state) => const AddBookScreen(),
+      ),
+      GoRoute(
+        path: '/books/:id',
+        name: 'book_detail',
+        builder: (context, state) {
+          final String? bookId = state.pathParameters['id'];
+          if (bookId == null) {
+            return const Scaffold(
+              body: Center(
+                child: Text('Book ID is required'),
+              ),
+            );
+          }
+          return BookDetailScreen(bookId: bookId);
+        },
       ),
       GoRoute(
         path: '/completed',
@@ -155,16 +188,9 @@ class AppRouter {
       ),
       GoRoute(
         path: '/reading-stats',
+        name: 'reading_stats',
         builder: (context, state) => const ReadingStatsScreen(),
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Text(
-          'Page not found: ${state.uri.path}',
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-      ),
-    ),
   );
-}
+});

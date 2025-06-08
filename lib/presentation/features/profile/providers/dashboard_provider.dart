@@ -129,7 +129,8 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     wantToReadBooks: [],
     currentlyReadingBooks: [],
   )) {
-    _initializeData();
+    // Initialize data immediately
+    _loadDashboardData();
     // Set up periodic refresh
     _refreshTimer = Timer.periodic(_cacheDuration, (_) => _loadDashboardData());
   }
@@ -143,10 +144,129 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     super.dispose();
   }
 
-  void _initializeData() {
-    if (state.isCacheValid) return;
-    _loadDashboardData();
-    _setupRealtimeListeners();
+  Future<void> _loadDashboardData() async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        state = state.copyWith(
+          isLoading: false,
+          error: 'User not authenticated',
+          lastUpdated: DateTime.now(),
+        );
+        return;
+      }
+
+      // Initialize empty data first to prevent black screen
+      state = state.copyWith(
+        allBooks: [],
+        readingBooks: [],
+        completedBooks: [],
+        wantToReadBooks: [],
+        currentlyReadingBooks: [],
+        recentSessions: [],
+        dailyGoal: 30,
+        recentActivities: [],
+        currentStreak: 0,
+        dailyProgress: 0,
+        lastUpdated: DateTime.now(),
+      );
+
+      // Set up realtime listeners
+      _setupRealtimeListeners();
+
+      // Get initial data
+      final booksSnapshot = await _database
+          .ref()
+          .child('books')
+          .orderByChild('userId')
+          .equalTo(userId)
+          .get();
+
+      final sessionsSnapshot = await _database
+          .ref()
+          .child('reading_sessions')
+          .orderByChild('userId')
+          .equalTo(userId)
+          .limitToLast(10)
+          .get();
+
+      final userPrefsSnapshot = await _database
+          .ref()
+          .child('users')
+          .child(userId)
+          .child('preferences')
+          .child('reading_goals')
+          .get();
+
+      final activitiesSnapshot = await _database
+          .ref()
+          .child('activities')
+          .orderByChild('userId')
+          .equalTo(userId)
+          .limitToLast(10)
+          .get();
+
+      // Process data
+      List<Book> books = [];
+      if (booksSnapshot.exists) {
+        final data = booksSnapshot.value as Map<dynamic, dynamic>;
+        books = data.entries.map((entry) {
+          final bookData = Map<String, dynamic>.from(entry.value as Map);
+          bookData['id'] = entry.key;
+          return Book.fromJson(bookData);
+        }).toList();
+      }
+
+      List<ReadingSession> sessions = [];
+      if (sessionsSnapshot.exists) {
+        final data = sessionsSnapshot.value as Map<dynamic, dynamic>;
+        sessions = data.entries.map((entry) {
+          final sessionData = Map<String, dynamic>.from(entry.value as Map);
+          sessionData['id'] = entry.key;
+          return ReadingSession.fromJson(sessionData);
+        }).toList()
+          ..sort((a, b) => b.startTime.compareTo(a.startTime));
+      }
+
+      final userPrefs = userPrefsSnapshot.value as Map<dynamic, dynamic>?;
+      final dailyGoal = userPrefs?['dailyGoal'] ?? 30;
+
+      List<Activity> activities = [];
+      if (activitiesSnapshot.exists) {
+        final data = activitiesSnapshot.value as Map<dynamic, dynamic>;
+        activities = data.entries.map((entry) {
+          final activityData = Map<String, dynamic>.from(entry.value as Map);
+          activityData['id'] = entry.key;
+          return Activity.fromJson(activityData);
+        }).toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      }
+
+      // Update state with all data
+      state = state.copyWith(
+        isLoading: false,
+        allBooks: books,
+        readingBooks: books.where((b) => b.status == 'reading').toList(),
+        completedBooks: books.where((b) => b.status == 'completed').toList(),
+        wantToReadBooks: books.where((b) => b.status == 'want_to_read').toList(),
+        recentSessions: sessions,
+        dailyGoal: dailyGoal,
+        recentActivities: activities,
+        lastUpdated: DateTime.now(),
+      );
+
+      _updateReadingStats();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+        lastUpdated: DateTime.now(),
+      );
+    }
   }
 
   void _setupRealtimeListeners() {
@@ -243,112 +363,6 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
     );
 
     _updateReadingStats();
-  }
-
-  Future<void> _loadDashboardData() async {
-    if (state.isLoading) return;
-    if (state.isCacheValid) return;
-
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      final userId = _auth.currentUser?.uid;
-      if (userId == null) throw Exception('User not authenticated');
-
-      // Get books
-      final booksSnapshot = await _database
-          .ref()
-          .child('books')
-          .orderByChild('userId')
-          .equalTo(userId)
-          .get();
-
-      // Get reading sessions
-      final sessionsSnapshot = await _database
-          .ref()
-          .child('reading_sessions')
-          .orderByChild('userId')
-          .equalTo(userId)
-          .limitToLast(10)
-          .get();
-
-      // Get user preferences
-      final userPrefsSnapshot = await _database
-          .ref()
-          .child('users')
-          .child(userId)
-          .child('preferences')
-          .child('reading_goals')
-          .get();
-
-      // Get activities
-      final activitiesSnapshot = await _database
-          .ref()
-          .child('activities')
-          .orderByChild('userId')
-          .equalTo(userId)
-          .limitToLast(10)
-          .get();
-
-      // Process books
-      List<Book> books = [];
-      if (booksSnapshot.exists) {
-        final data = booksSnapshot.value as Map<dynamic, dynamic>;
-        books = data.entries.map((entry) {
-          final bookData = Map<String, dynamic>.from(entry.value as Map);
-          bookData['id'] = entry.key;
-          return Book.fromJson(bookData);
-        }).toList();
-      }
-
-      // Process sessions
-      List<ReadingSession> sessions = [];
-      if (sessionsSnapshot.exists) {
-        final data = sessionsSnapshot.value as Map<dynamic, dynamic>;
-        sessions = data.entries.map((entry) {
-          final sessionData = Map<String, dynamic>.from(entry.value as Map);
-          sessionData['id'] = entry.key;
-          return ReadingSession.fromJson(sessionData);
-        }).toList()
-          ..sort((a, b) => b.startTime.compareTo(a.startTime));
-      }
-
-      // Process user preferences
-      final userPrefs = userPrefsSnapshot.value as Map<dynamic, dynamic>?;
-      final dailyGoal = userPrefs?['dailyGoal'] ?? 30;
-
-      // Process activities
-      List<Activity> activities = [];
-      if (activitiesSnapshot.exists) {
-        final data = activitiesSnapshot.value as Map<dynamic, dynamic>;
-        activities = data.entries.map((entry) {
-          final activityData = Map<String, dynamic>.from(entry.value as Map);
-          activityData['id'] = entry.key;
-          return Activity.fromJson(activityData);
-        }).toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      }
-
-      // Update state with all data
-      state = state.copyWith(
-        isLoading: false,
-        allBooks: books,
-        readingBooks: books.where((b) => b.status == 'reading').toList(),
-        completedBooks: books.where((b) => b.status == 'completed').toList(),
-        wantToReadBooks: books.where((b) => b.status == 'want_to_read').toList(),
-        recentSessions: sessions,
-        dailyGoal: dailyGoal,
-        recentActivities: activities,
-        lastUpdated: DateTime.now(),
-      );
-
-      _updateReadingStats();
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
-    }
   }
 
   void _updateReadingStats() {
